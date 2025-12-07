@@ -87,7 +87,7 @@ WHERE
     AND 
     TO_CHAR(sale_date, 'YYYY-MM') = '2022-11'
     AND
-    quantity >= 4
+    quantity > 4
 ```
 
 3. **Write a SQL query to calculate the total sales (total_sale) for each category.**:
@@ -147,7 +147,31 @@ GROUP BY 1, 2
 WHERE rank = 1
 ```
 
-8. **Write a SQL query to find the top 5 customers based on the highest total sales **:
+8. **Write a SQL query to find the highest total sales day in each month. Output: year, month, sale_date, total_sales_of_the_day**:
+```sql
+select *
+from (
+       select
+	        extract(year from sale_date) as year,
+			extract(month from sale_date) as month,
+			extract(day from sale_date) as day,
+			sum(total_sale) as total_sales_of_the_day,
+			rank() over(
+                       partition by 
+					   extract(year from sale_date),
+					   extract(month from sale_date)
+					   order by sum(total_sale) DESC
+			          ) as rnk
+       FROM retails_sales
+	   group by 
+	   extract(year from sale_date),
+	   extract(month from sale_date),
+	   extract(day from sale_date)
+	   ) t 
+WHERE rnk= 1;
+```
+
+9. **Write a SQL query to find the top 5 customers based on the highest total sales**:
 ```sql
 SELECT 
     customer_id,
@@ -158,7 +182,7 @@ ORDER BY 2 DESC
 LIMIT 5
 ```
 
-9. **Write a SQL query to find the number of unique customers who purchased items from each category.**:
+10. **Write a SQL query to find the number of unique customers who purchased items from each category.**:
 ```sql
 SELECT 
     category,    
@@ -167,24 +191,22 @@ FROM retail_sales
 GROUP BY category
 ```
 
-10. **Write a SQL query to create each shift and number of orders (Example Morning <12, Afternoon Between 12 & 17, Evening >17)**:
+11. **Write a SQL query to create each shift and number of orders (Example Morning <12, Afternoon Between 12 & 17, Evening >17)**:
 ```sql
-WITH hourly_sale
-AS
-(
-SELECT *,
-    CASE
-        WHEN EXTRACT(HOUR FROM sale_time) < 12 THEN 'Morning'
-        WHEN EXTRACT(HOUR FROM sale_time) BETWEEN 12 AND 17 THEN 'Afternoon'
-        ELSE 'Evening'
-    END as shift
-FROM retail_sales
-)
-SELECT 
-    shift,
-    COUNT(*) as total_orders    
-FROM hourly_sale
-GROUP BY shift
+select 
+       case
+	       when extract(hour from sale_time)  <12 then 'Morning'
+		   when extract(hour from sale_time) BETWEEN 12 and 17 then 'Afternoon'
+		   else 'Evening'
+	   end as shift_name,
+	   count(*) as total_order
+from retails_sales
+group by
+        case
+	       when extract(hour from sale_time)  <12 then 'Morning'
+		   when extract(hour from sale_time) BETWEEN 12 and 17 then 'Afternoon'
+		   else 'Evening'
+		end;
 ```
 
 ## Findings
@@ -211,17 +233,7 @@ This project serves as a comprehensive introduction to SQL for data analysts, co
 3. **Run the Queries**: Use the SQL queries provided in the `analysis_queries.sql` file to perform your analysis.
 4. **Explore and Modify**: Feel free to modify the queries to explore different aspects of the dataset or answer additional business questions.
 
-## Author - Zero Analyst
+## Author - Vitthal Bidve
 
 This project is part of my portfolio, showcasing the SQL skills essential for data analyst roles. If you have any questions, feedback, or would like to collaborate, feel free to get in touch!
 
-### Stay Updated and Join the Community
-
-For more content on SQL, data analysis, and other data-related topics, make sure to follow me on social media and join our community:
-
-- **YouTube**: [Subscribe to my channel for tutorials and insights](https://www.youtube.com/@zero_analyst)
-- **Instagram**: [Follow me for daily tips and updates](https://www.instagram.com/zero_analyst/)
-- **LinkedIn**: [Connect with me professionally](https://www.linkedin.com/in/najirr)
-- **Discord**: [Join our community to learn and grow together](https://discord.gg/36h5f2Z5PK)
-
-Thank you for your support, and I look forward to connecting with you!
